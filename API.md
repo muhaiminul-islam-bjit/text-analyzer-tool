@@ -462,12 +462,6 @@ curl -X GET http://localhost:3000/api/users/ \
 | JWT_SECRET   | JWT signing secret           | default-secret                      |
 | NODE_ENV     | Environment                  | development                         |
 
-## Rate Limiting (Future Enhancement)
-
-Currently, the API does not implement rate limiting. For production use, consider implementing:
-- Request rate limiting per IP
-- Authentication attempt limiting
-- API key management for different clients
 
 ## CORS (Future Enhancement)
 
