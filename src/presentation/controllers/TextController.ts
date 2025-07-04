@@ -275,4 +275,44 @@ export class TextController {
       res.status(statusCode).json({ error: error.message });
     }
   }
+
+  async getCacheHealth(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const isHealthy = await textService.getCacheHealth();
+      
+      res.status(200).json({
+        cache: {
+          healthy: isHealthy,
+          status: isHealthy ? 'connected' : 'disconnected'
+        }
+      });
+    } catch (error: any) {
+      logger.error('Cache health check error:', error);
+      res.status(500).json({ 
+        cache: {
+          healthy: false,
+          status: 'error',
+          error: error.message
+        }
+      });
+    }
+  }
+
+  async getCacheStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const stats = await textService.getCacheStats();
+      
+      res.status(200).json({
+        cache: stats
+      });
+    } catch (error: any) {
+      logger.error('Cache stats error:', error);
+      res.status(500).json({ 
+        cache: {
+          connected: false,
+          error: error.message
+        }
+      });
+    }
+  }
 }

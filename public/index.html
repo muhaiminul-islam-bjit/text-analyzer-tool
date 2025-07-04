@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Analysis Application</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -252,6 +254,15 @@
             box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
         }
 
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
         .message {
             padding: 18px 24px;
             border-radius: 12px;
@@ -273,6 +284,146 @@
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
             color: #dc2626;
             border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999999; /* Very high z-index to ensure it's always on top */
+            pointer-events: none;
+            max-width: 400px;
+            width: auto;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 14px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: all;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            min-width: 300px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.hide {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: currentColor;
+            width: 100%;
+            opacity: 0.3;
+            animation: toastProgress 5s linear forwards;
+        }
+
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+            color: white;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
+            color: white;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+            color: white;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+            color: white;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Rate limit specific styling */
+        .toast.rate-limit {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(124, 58, 237, 0.95));
+            color: white;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+            
+            .toast {
+                margin-bottom: 8px;
+                padding: 14px 16px;
+                font-size: 13px;
+            }
         }
 
         .user-info {
@@ -307,7 +458,7 @@
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 20px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
@@ -330,9 +481,7 @@
         }
 
         .text-item:hover {
-            transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-            border-color: rgba(99, 102, 241, 0.3);
         }
 
         .text-title {
@@ -368,6 +517,24 @@
             margin-top: 20px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .analysis-result.highlight {
+            animation: highlightResult 2s ease-out;
+        }
+
+        @keyframes highlightResult {
+            0% {
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1));
+                border-color: rgba(34, 197, 94, 0.5);
+                transform: scale(1.02);
+            }
+            100% {
+                background: linear-gradient(135deg, rgba(240, 249, 255, 0.8), rgba(219, 234, 254, 0.6));
+                border-color: rgba(147, 197, 253, 0.3);
+                transform: scale(1);
+            }
         }
 
         .analysis-result h3 {
@@ -390,7 +557,7 @@
             border-radius: 16px;
             text-align: center;
             border: 1px solid rgba(226, 232, 240, 0.6);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
@@ -407,9 +574,7 @@
         }
 
         .analysis-card:hover {
-            transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
-            border-color: rgba(99, 102, 241, 0.3);
         }
 
         .analysis-value {
@@ -498,6 +663,17 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Loading spinner */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
         /* Floating particles animation */
         .particles {
             position: fixed;
@@ -540,6 +716,229 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #4f46e5, #7c3aed);
         }
+
+        /* New Interactive Features Styles */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+        }
+
+
+
+        .real-time-stats {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #047857;
+        }
+
+        .text-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .text-item-actions .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .edit-mode {
+            background: rgba(255, 248, 220, 0.8);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-text {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            height: 300px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(226, 232, 240, 0.8);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .floating-action-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.5);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .word-cloud {
+            text-align: center;
+            line-height: 2;
+            margin: 20px 0;
+        }
+
+        .word-cloud span {
+            display: inline-block;
+            margin: 4px;
+            padding: 4px 8px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .word-cloud span:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
+
+        .text-stats-mini {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .text-stats-mini span {
+            background: rgba(241, 245, 249, 0.8);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .floating-action-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .text-item-actions {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -556,6 +955,9 @@
         <div class="particle" style="left: 90%; animation-delay: 4s;"></div>
     </div>
 
+    <!-- Toast Container for notifications - positioned relative to body -->
+    <div id="toast-container" class="toast-container"></div>
+    
     <div class="container">
         <div class="header">
             <h1>📝 Text Analysis App</h1>
@@ -624,15 +1026,26 @@
                         <div class="form-group">
                             <label for="text-content">Content:</label>
                             <textarea id="text-content" placeholder="Enter your text content for analysis..."></textarea>
+                            <div class="real-time-stats" id="real-time-stats">
+                                Words: <span id="live-words">0</span> | 
+                                Characters: <span id="live-chars">0</span> | 
+                                Sentences: <span id="live-sentences">0</span>
+                            </div>
                         </div>
                         <button class="btn" onclick="createText()">Create Text</button>
-                        <button class="btn btn-secondary" onclick="loadTexts()">Refresh Texts</button>
                     </div>
                 </div>
 
                 <!-- Text List Section -->
                 <div class="section">
                     <h2>📚 Your Texts</h2>
+                    
+                    <!-- Search -->
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="text-search" placeholder="Search texts by title or content...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    
                     <div id="texts-list">
                         <p>Loading texts...</p>
                     </div>
@@ -654,10 +1067,62 @@
                         <button class="btn btn-secondary" onclick="getSentenceCount()">Sentence Count</button>
                         <button class="btn btn-secondary" onclick="getParagraphCount()">Paragraph Count</button>
                         <button class="btn btn-secondary" onclick="getLongestWords()">Longest Words</button>
+                        <button class="btn btn-success" onclick="generateWordCloud()">Word Cloud</button>
+                        <button class="btn btn-success" onclick="showAnalysisChart()">Visual Chart</button>
                     </div>
                     <div id="analysis-results"></div>
+                    
+                    <!-- Chart Container -->
+                    <div class="chart-container" id="chart-container" style="display: none;">
+                        <canvas id="analysis-chart"></canvas>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Auto-save Indicator -->
+    <div class="auto-save-indicator" id="auto-save-indicator">
+        ✓ Auto-saved
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="floating-action-btn" onclick="quickCreateText()" title="Quick Create Text">
+        ✏️
+    </button>
+
+    <!-- Modals -->
+    <div class="modal" id="word-cloud-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 Word Cloud</h3>
+                <button class="close-btn" onclick="closeModal('word-cloud-modal')">&times;</button>
+            </div>
+            <div class="word-cloud" id="word-cloud-content"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-text-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ Edit Text</h3>
+                <button class="close-btn" onclick="closeModal('edit-text-modal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="edit-text-title">Title:</label>
+                <input type="text" id="edit-text-title">
+            </div>
+            <div class="form-group">
+                <label for="edit-text-content">Content:</label>
+                <textarea id="edit-text-content" rows="10"></textarea>
+                <div class="real-time-stats">
+                    Words: <span id="edit-live-words">0</span> | 
+                    Characters: <span id="edit-live-chars">0</span> | 
+                    Sentences: <span id="edit-live-sentences">0</span>
+                </div>
+            </div>
+            <button class="btn" onclick="saveEditedText()">Save Changes</button>
+            <button class="btn btn-secondary" onclick="closeModal('edit-text-modal')">Cancel</button>
         </div>
     </div>
 
@@ -665,24 +1130,508 @@
         const API_BASE = 'http://localhost:3000/api';
         let authToken = localStorage.getItem('authToken');
         let userTexts = [];
+        let currentEditingTextId = null;
+        let autoSaveTimeout = null;
+        let analysisChart = null;
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
             if (authToken) {
                 showDashboard();
                 loadTexts();
+                initializeInteractiveFeatures();
             } else {
                 showAuthSection();
             }
         });
 
+        // Initialize interactive features
+        function initializeInteractiveFeatures() {
+            // Real-time text analysis
+            const textContent = document.getElementById('text-content');
+            const editTextContent = document.getElementById('edit-text-content');
+            
+            if (textContent) {
+                textContent.addEventListener('input', updateRealTimeStats);
+            }
+            if (editTextContent) {
+                editTextContent.addEventListener('input', updateEditRealTimeStats);
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('text-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(filterTexts, 300));
+            }
+
+            // Auto-save for editing
+            setupAutoSave();
+        }
+
+        // Real-time text statistics
+        function updateRealTimeStats() {
+            const content = document.getElementById('text-content').value;
+            const stats = calculateTextStats(content);
+            
+            document.getElementById('live-words').textContent = stats.words;
+            document.getElementById('live-chars').textContent = stats.characters;
+            document.getElementById('live-sentences').textContent = stats.sentences;
+        }
+
+        function updateEditRealTimeStats() {
+            const content = document.getElementById('edit-text-content').value;
+            const stats = calculateTextStats(content);
+            
+            document.getElementById('edit-live-words').textContent = stats.words;
+            document.getElementById('edit-live-chars').textContent = stats.characters;
+            document.getElementById('edit-live-sentences').textContent = stats.sentences;
+        }
+
+        function calculateTextStats(text) {
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const characters = text.length;
+            const sentences = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim().length > 0).length : 0;
+            
+            return { words, characters, sentences };
+        }
+
+        // Auto-save functionality
+        function setupAutoSave() {
+            const editTextContent = document.getElementById('edit-text-content');
+            const editTextTitle = document.getElementById('edit-text-title');
+            
+            if (editTextContent) {
+                editTextContent.addEventListener('input', () => {
+                    if (currentEditingTextId) {
+                        clearTimeout(autoSaveTimeout);
+                        autoSaveTimeout = setTimeout(autoSaveText, 2000);
+                    }
+                });
+            }
+            
+            if (editTextTitle) {
+                editTextTitle.addEventListener('input', () => {
+                    if (currentEditingTextId) {
+                        clearTimeout(autoSaveTimeout);
+                        autoSaveTimeout = setTimeout(autoSaveText, 2000);
+                    }
+                });
+            }
+        }
+
+        function autoSaveText() {
+            if (currentEditingTextId) {
+                const title = document.getElementById('edit-text-title').value;
+                const content = document.getElementById('edit-text-content').value;
+                
+                updateTextInBackground(currentEditingTextId, title, content);
+                showAutoSaveIndicator();
+            }
+        }
+
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('auto-save-indicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+        }
+
+        // Search and filter functionality
+        function filterTexts() {
+            const searchTerm = document.getElementById('text-search').value.toLowerCase();
+            let filteredTexts = [...userTexts];
+
+            // Apply search filter
+            if (searchTerm) {
+                filteredTexts = filteredTexts.filter(text => 
+                    text.title.toLowerCase().includes(searchTerm) || 
+                    text.content.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            displayFilteredTexts(filteredTexts);
+        }
+
+        function displayFilteredTexts(texts) {
+            const textsContainer = document.getElementById('texts-list');
+            
+            if (texts.length === 0) {
+                textsContainer.innerHTML = '<p>No texts found matching your criteria.</p>';
+                return;
+            }
+
+            textsContainer.innerHTML = texts.map(text => {
+                const stats = calculateTextStats(text.content);
+                return `
+                    <div class="text-item" data-text-id="${text.id}">
+                        <div class="text-title">${text.title}</div>
+                        <div class="text-content">${text.content.substring(0, 200)}${text.content.length > 200 ? '...' : ''}</div>
+                        <div class="text-stats-mini">
+                            <span>📝 ${stats.words} words</span>
+                            <span>🔤 ${stats.characters} chars</span>
+                            <span>📄 ${stats.sentences} sentences</span>
+                        </div>
+                        <div class="text-meta">
+                            Created: ${new Date(text.createdAt).toLocaleDateString()}
+                            ${text.updatedAt !== text.createdAt ? `• Updated: ${new Date(text.updatedAt).toLocaleDateString()}` : ''}
+                        </div>
+                        <div class="text-item-actions">
+                            <button class="btn btn-success" onclick="analyzeSpecificText('${text.id}')">Analyze</button>
+                            <button class="btn btn-secondary" onclick="editText('${text.id}')">Edit</button>
+                            <button class="btn btn-secondary" onclick="duplicateText('${text.id}')">Duplicate</button>
+                            <button class="btn btn-danger" onclick="deleteText('${text.id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add entrance animations
+            anime({
+                targets: '.text-item',
+                translateY: [20, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100),
+                duration: 600,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        // Modal functionality
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'flex';
+            anime({
+                targets: `#${modalId} .modal-content`,
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        function closeModal(modalId) {
+            anime({
+                targets: `#${modalId} .modal-content`,
+                scale: [1, 0.8],
+                opacity: [1, 0],
+                duration: 200,
+                easing: 'easeInQuart',
+                complete: () => {
+                    document.getElementById(modalId).style.display = 'none';
+                }
+            });
+        }
+
+        // Text editing functionality
+        function editText(textId) {
+            const text = userTexts.find(t => t.id === textId);
+            if (!text) return;
+
+            currentEditingTextId = textId;
+            document.getElementById('edit-text-title').value = text.title;
+            document.getElementById('edit-text-content').value = text.content;
+            updateEditRealTimeStats();
+            openModal('edit-text-modal');
+        }
+
+        async function saveEditedText() {
+            if (!currentEditingTextId) return;
+
+            const title = document.getElementById('edit-text-title').value;
+            const content = document.getElementById('edit-text-content').value;
+
+            if (!title || !content) {
+                showMessage('Please fill in both title and content', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/texts/${currentEditingTextId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Text updated successfully!');
+                    closeModal('edit-text-modal');
+                    loadTexts();
+                    currentEditingTextId = null;
+                } else {
+                    showMessage(data.error || 'Failed to update text', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+        }
+
+        async function updateTextInBackground(textId, title, content) {
+            try {
+                await fetch(`${API_BASE}/texts/${textId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
+
+        // Text duplication
+        async function duplicateText(textId) {
+            const text = userTexts.find(t => t.id === textId);
+            if (!text) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/texts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ 
+                        title: `${text.title} (Copy)`,
+                        content: text.content 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Text duplicated successfully!');
+                    loadTexts();
+                } else {
+                    showMessage(data.error || 'Failed to duplicate text', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Quick create text
+        function quickCreateText() {
+            anime({
+                targets: '#create-text-form',
+                backgroundColor: ['rgba(255, 255, 255, 0.7)', 'rgba(99, 102, 241, 0.1)'],
+                duration: 500,
+                direction: 'alternate',
+                easing: 'easeInOutQuart'
+            });
+            
+            document.getElementById('text-title').focus();
+            document.getElementById('text-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Word cloud functionality
+        async function generateWordCloud() {
+            const textId = document.getElementById('analysis-text-select').value;
+            if (!textId) {
+                showMessage('Please select a text to analyze', 'error');
+                return;
+            }
+
+            const text = userTexts.find(t => t.id === textId);
+            if (!text) return;
+
+            const words = text.content.toLowerCase()
+                .replace(/[^\w\s]/g, '')
+                .split(/\s+/)
+                .filter(word => word.length > 3)
+                .reduce((acc, word) => {
+                    acc[word] = (acc[word] || 0) + 1;
+                    return acc;
+                }, {});
+
+            const sortedWords = Object.entries(words)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 20);
+
+            const maxCount = sortedWords[0][1];
+            const wordCloudHTML = sortedWords.map(([word, count]) => {
+                const size = 12 + (count / maxCount) * 16;
+                return `<span style="font-size: ${size}px;" title="${count} occurrences">${word}</span>`;
+            }).join(' ');
+
+            document.getElementById('word-cloud-content').innerHTML = wordCloudHTML;
+            openModal('word-cloud-modal');
+        }
+
+        // Chart visualization
+        function showAnalysisChart() {
+            const textId = document.getElementById('analysis-text-select').value;
+            if (!textId) {
+                showMessage('Please select a text to analyze', 'error');
+                return;
+            }
+
+            getFullAnalysis().then(() => {
+                const chartContainer = document.getElementById('chart-container');
+                chartContainer.style.display = 'block';
+                
+                const ctx = document.getElementById('analysis-chart').getContext('2d');
+                
+                if (analysisChart) {
+                    analysisChart.destroy();
+                }
+
+                const text = userTexts.find(t => t.id === textId);
+                const stats = calculateTextStats(text.content);
+
+                analysisChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Words', 'Characters', 'Sentences', 'Paragraphs'],
+                        datasets: [{
+                            data: [stats.words, stats.characters / 10, stats.sentences, text.content.split('\n\n').length],
+                            backgroundColor: [
+                                '#6366f1',
+                                '#8b5cf6',
+                                '#d946ef',
+                                '#f59e0b'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                chartContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+
         // Utility functions
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ...existing code...
+
+        // Utility functions
+        // Toast notification system
+        let toastId = 0;
+
+        function getToastIcon(type) {
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️',
+                'rate-limit': '🚦'
+            };
+            return icons[type] || icons.info;
+        }
+
+        function createToast(message, type = 'success', duration = 5000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const id = ++toastId;
+            
+            toast.className = `toast ${type}`;
+            toast.id = `toast-${id}`;
+            
+            toast.innerHTML = `
+                <span class="toast-icon">${getToastIcon(type)}</span>
+                <span class="toast-content">${message}</span>
+                <button class="toast-close" onclick="removeToast('${toast.id}')">&times;</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            // Auto remove after duration
+            const timeoutId = setTimeout(() => {
+                removeToast(toast.id);
+            }, duration);
+            
+            // Allow manual dismissal by clicking the toast
+            toast.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('toast-close')) {
+                    clearTimeout(timeoutId);
+                    removeToast(toast.id);
+                }
+            });
+            
+            return toast.id;
+        }
+
+        function removeToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 400);
+            }
+        }
+
+        function showToast(message, type = 'success', duration = 5000) {
+            return createToast(message, type, duration);
+        }
+
         function showMessage(message, type = 'success') {
+            // Use toast notifications instead of the old static message
+            const toastType = type === 'success' ? 'success' : 'error';
+            showToast(message, toastType);
+            
+            // Still update the old message div for backward compatibility (but keep it hidden)
             const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.className = `message ${type}`;
-            messageDiv.classList.remove('hidden');
-            setTimeout(() => messageDiv.classList.add('hidden'), 5000);
+            if (messageDiv) {
+                messageDiv.textContent = message;
+                messageDiv.className = `message ${type} hidden`;
+            }
+        }
+
+        // Enhanced error handling for rate limiting
+        async function handleApiError(error, response) {
+            if (response && response.status === 429) {
+                // Rate limit specific handling
+                let retryAfter = null;
+                try {
+                    retryAfter = response.headers.get('Retry-After');
+                } catch (e) {
+                    // Headers might not be available
+                }
+                const retryTime = retryAfter ? ` Try again in ${retryAfter} seconds.` : '';
+                showToast(
+                    `Rate limit exceeded. Please slow down your requests.${retryTime}`,
+                    'rate-limit',
+                    8000 // Show longer for rate limit messages
+                );
+            } else if (error && error.message) {
+                showToast(error.message, 'error');
+            } else {
+                showToast('Network error. Please try again.', 'error');
+            }
         }
 
         function showAuthSection() {
@@ -733,10 +1682,14 @@
                     document.getElementById('register-email').value = '';
                     document.getElementById('register-password').value = '';
                 } else {
-                    showMessage(data.error || 'Registration failed', 'error');
+                    if (response.status === 429) {
+                        handleApiError(null, response);
+                    } else {
+                        showMessage(data.error || 'Registration failed', 'error');
+                    }
                 }
             } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
+                handleApiError(error, null);
             }
         }
 
@@ -770,10 +1723,14 @@
                     document.getElementById('login-email').value = '';
                     document.getElementById('login-password').value = '';
                 } else {
-                    showMessage(data.error || 'Login failed', 'error');
+                    if (response.status === 429) {
+                        handleApiError(null, response);
+                    } else {
+                        showMessage(data.error || 'Login failed', 'error');
+                    }
                 }
             } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
+                handleApiError(error, null);
             }
         }
 
@@ -843,25 +1800,7 @@
         }
 
         function displayTexts() {
-            const textsContainer = document.getElementById('texts-list');
-            
-            if (userTexts.length === 0) {
-                textsContainer.innerHTML = '<p>No texts found. Create your first text above!</p>';
-                return;
-            }
-
-            textsContainer.innerHTML = userTexts.map(text => `
-                <div class="text-item">
-                    <div class="text-title">${text.title}</div>
-                    <div class="text-content">${text.content.substring(0, 200)}${text.content.length > 200 ? '...' : ''}</div>
-                    <div class="text-meta">
-                        Created: ${new Date(text.createdAt).toLocaleDateString()}
-                        ${text.updatedAt !== text.createdAt ? `• Updated: ${new Date(text.updatedAt).toLocaleDateString()}` : ''}
-                    </div>
-                    <button class="btn btn-danger" onclick="deleteText('${text.id}')">Delete</button>
-                    <button class="btn btn-success" onclick="analyzeSpecificText('${text.id}')">Analyze</button>
-                </div>
-            `).join('');
+            displayFilteredTexts(userTexts);
         }
 
         function updateAnalysisSelect() {
@@ -915,6 +1854,17 @@
                 return;
             }
 
+            // Show loading state
+            const resultsContainer = document.getElementById('analysis-results');
+            resultsContainer.innerHTML = `
+                <div class="analysis-result">
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner"></div>
+                        <p style="margin-top: 16px; color: #64748b;">Analyzing your text...</p>
+                    </div>
+                </div>
+            `;
+
             try {
                 const response = await fetch(`${API_BASE}/texts/${textId}/analysis`, {
                     headers: {
@@ -926,11 +1876,16 @@
 
                 if (response.ok) {
                     displayAnalysisResults('Full Analysis', data.analysis);
+                    showToast('Analysis completed successfully!', 'success', 3000);
                 } else {
-                    showMessage(data.error || 'Failed to analyze text', 'error');
+                    if (response.status === 429) {
+                        await handleApiError(null, response);
+                    } else {
+                        showMessage(data.error || 'Failed to analyze text', 'error');
+                    }
                 }
             } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
+                await handleApiError(error, null);
             }
         }
 
@@ -961,6 +1916,17 @@
                 return;
             }
 
+            // Show loading state
+            const resultsContainer = document.getElementById('analysis-results');
+            resultsContainer.innerHTML = `
+                <div class="analysis-result">
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="loading-spinner"></div>
+                        <p style="margin-top: 16px; color: #64748b;">Analyzing ${title.toLowerCase()}...</p>
+                    </div>
+                </div>
+            `;
+
             try {
                 const response = await fetch(`${API_BASE}/texts/${textId}/${endpoint}`, {
                     headers: {
@@ -972,11 +1938,16 @@
 
                 if (response.ok) {
                     displayAnalysisResults(title, data);
+                    showToast(`${title} analysis completed!`, 'success', 2000);
                 } else {
-                    showMessage(data.error || 'Failed to analyze text', 'error');
+                    if (response.status === 429) {
+                        await handleApiError(null, response);
+                    } else {
+                        showMessage(data.error || 'Failed to analyze text', 'error');
+                    }
                 }
             } catch (error) {
-                showMessage('Network error. Please try again.', 'error');
+                await handleApiError(error, null);
             }
         }
 
@@ -1026,6 +1997,32 @@
 
             html += '</div>';
             resultsContainer.innerHTML = html;
+            
+            // Add highlight animation and smooth scroll
+            setTimeout(() => {
+                scrollToAnalysisResults();
+                
+                // Add highlight animation
+                const analysisResult = resultsContainer.querySelector('.analysis-result');
+                if (analysisResult) {
+                    analysisResult.classList.add('highlight');
+                    // Remove the highlight class after animation completes
+                    setTimeout(() => {
+                        analysisResult.classList.remove('highlight');
+                    }, 2000);
+                }
+            }, 100);
+        }
+
+        // Smooth scroll function to analysis results
+        function scrollToAnalysisResults() {
+            const resultsContainer = document.getElementById('analysis-results');
+            if (resultsContainer) {
+                resultsContainer.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         }
     </script>
 </body>

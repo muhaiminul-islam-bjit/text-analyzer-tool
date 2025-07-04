@@ -7,7 +7,7 @@ A Node.js text analysis application with user authentication and comprehensive t
 - **Node.js** with **TypeScript**
 - **Express.js** for REST API
 - **MongoDB** for data persistence
-- **Redis** for caching
+- **Redis** for caching and rate limiting
 - **JWT** for authentication
 - **Winston** for logging
 - **Docker** for containerization
@@ -37,6 +37,7 @@ src/
 │   │   ├── MongoUserRepository.ts # User repository implementation
 │   │   └── MongoTextRepository.ts # Text repository implementation
 │   ├── cache/
+│   │   ├── CacheService.ts        # Redis caching service
 │   │   └── redis.ts               # Redis connection
 │   └── logging/
 │       └── logger.ts              # Winston logger setup
@@ -44,6 +45,9 @@ src/
     ├── controllers/
     │   ├── UserController.ts      # HTTP user request handlers
     │   └── TextController.ts      # HTTP text request handlers
+    ├── middleware/
+    │   ├── authMiddleware.ts      # JWT authentication middleware
+    │   └── rateLimitMiddleware.ts # Rate limiting middleware
     ├── routes/
     │   ├── userRoutes.ts          # User route definitions
     │   └── textRoutes.ts          # Text route definitions
@@ -126,214 +130,43 @@ The web interface provides the same functionality as the REST API but with a muc
 
 📋 **[Complete API Documentation](./API.md)** - Detailed API guide with examples and all endpoints
 
-### Quick Start
+## Rate Limiting & API Throttling
 
-```bash
-# 1. Health check
-curl http://localhost:3000/health
+🛡️ **Enterprise-Grade Rate Limiting**: The application features a sophisticated throttling system built on Redis that provides comprehensive protection against API abuse while ensuring optimal performance for legitimate users.
 
-# 2. Register a user
-curl -X POST http://localhost:3000/api/users/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
+### Advanced Throttling Features
 
-# 3. Login and get token
-curl -X POST http://localhost:3000/api/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
+- **🔒 Redis-Backed Distributed Limiting**: Scalable rate limiting across multiple server instances
+- **🎯 Intelligent Endpoint-Specific Limits**: Granular throttling based on operation type and resource intensity
+- **👤 Dual-Mode Identification**: Smart switching between user-based and IP-based limiting
+- **🌐 Geographic IP Tracking**: Accurate client identification with proxy support
+- **📊 Standard Rate Limit Headers**: RFC-compliant headers for client awareness
+- **🔄 Fail-Open Architecture**: Graceful degradation when Redis is unavailable
+- **📝 Detailed Audit Logging**: Complete violation tracking for security monitoring
+- **⚡ Sliding Window Algorithm**: Precise request counting with time-based windows
+- **🚦 Toast Notifications**: User-friendly frontend rate limit alerts
 
-# 4. Create and analyze text (use token from step 3)
-curl -X POST http://localhost:3000/api/texts \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"title":"Sample","content":"Hello world!"}'
-```
+### Throttling Configuration by Endpoint
 
-For complete API documentation with all endpoints, examples, and schemas, see **[API.md](./API.md)**.
+**🔐 Authentication Endpoints (Strict Security):**
+- **Login**: 5 attempts per 15 minutes per IP
+- **Registration**: 3 attempts per 1 hour per IP
+- Protection against brute force and spam registration attacks
 
-### Stopping the Application
+**Text Analysis Operations:**
+- **10 analysis requests per 5 minutes** per user
+- CPU-intensive operations require tighter limits
 
-```bash
-docker compose down
-```
+**📝 Text Management Operations (User-Scoped):**
+- **CRUD Operations**: 20 requests per 10 minutes per authenticated user
+- **Covers**: Create, update, delete text documents
+- Prevents content spam while allowing normal usage
 
-To remove volumes (database data):
-```bash
-docker compose down -v
-```
+**🔍 General API Access (Baseline Protection):**
+- **All Endpoints**: 100 requests per 15 minutes per IP address
+- **Health Checks**: 30 requests per 1 minute per IP (monitoring-friendly)
+- Comprehensive baseline protection layer
 
-## Testing
-
-This project includes a comprehensive test suite using Jest and Supertest, running in isolated Docker containers with health checks to ensure reliable test execution.
-
-### Quick Test Commands
-
-**Run all tests (recommended):**
-```bash
-docker compose -f docker-compose.test.yml up --build app-test --abort-on-container-exit
-```
-
-**Run tests with coverage:**
-```bash
-docker compose -f docker-compose.test.yml up --build app-test-coverage --abort-on-container-exit
-```
-
-**Run tests in watch mode (for development):**
-```bash
-docker compose -f docker-compose.test.yml up --build app-test-watch
-```
-
-**Using the test script (easier):**
-```bash
-./test.sh run      # Run all tests once
-./test.sh coverage # Run with coverage report
-./test.sh watch    # Run in watch mode
-./test.sh cleanup  # Clean up test containers
-```
-
-### Test Suite Overview
-
-The test suite covers all major functionality:
-
-- ✅ **Health Check** - Server availability and basic connectivity
-- ✅ **User Registration** - Input validation, duplicate prevention, password hashing
-- ✅ **User Authentication** - Login validation, JWT generation, credential verification
-- ✅ **Protected Routes** - Authorization middleware, JWT validation
-- ✅ **Integration Tests** - Complete user flows and API interaction
-- ✅ **Error Handling** - Proper error responses and status codes
-
-### Test Environment
-
-**Technology Stack:**
-- **Jest** - Testing framework with extensive matchers
-- **Supertest** - HTTP testing library for API endpoints
-- **Docker Compose** - Isolated test environment
-- **MongoDB** - Real database (not in-memory) for better test reliability
-- **Redis** - Caching layer for complete integration testing
-
-**Environment Configuration:**
-- Tests run in isolated Docker containers
-- Fresh database for each test run
-- Health checks ensure services are ready before tests start
-- Automatic cleanup between test cases
-
-### Understanding Test Output
-
-**Successful test run example:**
-```
-✓ Health endpoint should return OK status
-✓ User registration should create new user successfully
-✓ User registration should reject invalid email
-✓ User login should return JWT token
-✓ Protected route should require valid token
-✓ Integration test should handle complete user flow
-
-Test Suites: 6 passed, 6 total
-Tests:       15+ passed, 15+ total
-```
-
-**With coverage report:**
-```
-File                     | % Stmts | % Branch | % Funcs | % Lines |
--------------------------|---------|----------|---------|---------|
-All files               |   95.2  |   88.1   |   100   |   94.8  |
-```
-
-### Local Testing (Alternative)
-
-If you prefer running tests locally without Docker:
-
-**Prerequisites:**
-- Node.js 18+
-- MongoDB and Redis running locally
-
-**Commands:**
-```bash
-npm install
-npm test                # Run all tests
-npm run test:watch      # Watch mode for development
-npm run test:coverage   # Generate coverage report
-```
-
-### Continuous Integration
-
-For CI/CD pipelines, use the following commands:
-
-```bash
-# In your CI pipeline
-docker compose -f docker-compose.test.yml up --build app-test-coverage --abort-on-container-exit
-docker compose -f docker-compose.test.yml down -v
-```
-
-### Troubleshooting Tests
-
-**Common Issues and Solutions:**
-
-**1. Tests timeout or hang:**
-```bash
-# Clean up any existing containers
-docker compose -f docker-compose.test.yml down -v
-
-# Ensure ports are available (27018, 6380)
-docker ps | grep -E "(27018|6380)"
-
-# Run with verbose output
-docker compose -f docker-compose.test.yml up --build app-test
-```
-
-**2. Database connection errors:**
-```bash
-# Check if MongoDB test container is healthy
-docker compose -f docker-compose.test.yml ps
-
-# View container logs
-docker compose -f docker-compose.test.yml logs mongodb-test
-```
-
-**3. Redis connection issues:**
-```bash
-# Check Redis container status
-docker compose -f docker-compose.test.yml logs redis-test
-
-# Verify Redis connectivity
-docker exec -it nodejs-project-text-search-redis-test-1 redis-cli ping
-```
-
-**4. Build issues:**
-```bash
-# Force rebuild without cache
-docker compose -f docker-compose.test.yml build --no-cache app-test
-
-# Clean up Docker system
-docker system prune -f
-```
-
-**5. Permission issues (macOS/Linux):**
-```bash
-# Make test script executable
-chmod +x test.sh
-
-# Fix Docker permissions
-sudo chown -R $USER:$USER .
-```
-
-### Test Configuration
-
-The test setup automatically:
-- Starts MongoDB and Redis containers with health checks
-- Waits for services to be fully ready
-- Creates isolated test database
-- Runs all test files in the `tests/` directory
-- Cleans up database state between tests
-- Provides detailed error reporting
-
-**Environment Variables (Test):**
-```env
-NODE_ENV=test
-JWT_SECRET=test-secret-key-for-testing
-MONGODB_URI=mongodb://test:test@mongodb-test:27017/test?authSource=admin
-REDIS_URL=redis://redis-test:6379
-```
 
 ## Environment Variables
 
@@ -359,12 +192,13 @@ This project follows **Clean Architecture** principles:
 - ✅ User registration with email validation
 - ✅ Password hashing with bcrypt
 - ✅ User authentication with JWT tokens
+- ✅ **API Rate Limiting & Throttling** - Enterprise-grade rate limiting with Redis backend
 - ✅ Input validation with Joi
 - ✅ Error handling and logging
 - ✅ Clean architecture separation
 - ✅ Docker containerization
 - ✅ MongoDB for data persistence
-- ✅ Redis for caching (ready for future use)
+- ✅ **Redis Caching System** - Intelligent caching with content change detection
 - ✅ **Text Analysis System** - Complete CRUD operations for texts
 - ✅ **Word Count Analysis** - Count words in any text
 - ✅ **Character Count Analysis** - Count characters (excluding whitespace)
