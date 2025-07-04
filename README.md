@@ -75,7 +75,6 @@ src/
 
 3. **The application will be available at:**
    - **Web Interface**: http://localhost:3000 (Interactive frontend for text analysis)
-   - **API**: http://localhost:3000/api (RESTful API endpoints)
    - **MongoDB**: http://localhost:27017
    - **Redis**: http://localhost:6379
 
