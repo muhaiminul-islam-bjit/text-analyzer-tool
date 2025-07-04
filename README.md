@@ -56,7 +56,9 @@ src/
 
 ### Prerequisites
 
-- Docker and Docker Compose installed
+- **Docker and Docker Compose installed (latest version)**
+  
+  > **⚠️ Important**: This project uses the `docker compose` command (with a space). If you get a "command not found" error, you're using an older version of Docker. Please update to Docker Desktop 3.6+ or Docker Engine 20.10.13+ which includes Compose V2. Alternatively, you can use `docker-compose` (with a hyphen) if you have the older standalone version.
 
 ### Running the Application
 
@@ -68,9 +70,10 @@ src/
    ```
 
 3. **The application will be available at:**
-   - API: http://localhost:3000
-   - MongoDB: http://localhost:27017
-   - Redis: http://localhost:6379
+   - **Web Interface**: http://localhost:3000 (Interactive frontend for text analysis)
+   - **API**: http://localhost:3000/api (RESTful API endpoints)
+   - **MongoDB**: http://localhost:27017
+   - **Redis**: http://localhost:6379
 
 ### Quick Test Commands
 
@@ -92,489 +95,61 @@ docker compose -f docker-compose.test.yml up --build app-test-coverage --abort-o
 ./test.sh cleanup   # Clean up containers
 ```
 
+## Web Interface
+
+🎨 **Modern Frontend Experience**: This application includes a beautiful, responsive web interface that provides an intuitive way to interact with the text analysis features without needing to use curl commands or API clients.
+
+### Frontend Features
+
+- **🔐 User Authentication**: Register new accounts and login with a sleek authentication form
+- **📄 Text Management**: Create, edit, and manage your text documents through a user-friendly interface
+- **🔍 Real-time Analysis**: Instantly analyze your texts for:
+  - Word count
+  - Character count (excluding whitespace)
+  - Sentence count
+  - Paragraph count
+  - Longest words per paragraph
+- **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **✨ Modern UI**: Clean, gradient-based design with smooth animations and blur effects
+
+### Using the Web Interface
+
+1. **Start the application** using Docker Compose (as described above)
+2. **Open your browser** and navigate to `http://localhost:3000`
+3. **Register a new account** or login with existing credentials
+4. **Create text documents** and analyze them instantly through the interface
+5. **View your text library** with all your saved documents
+
+The web interface provides the same functionality as the REST API but with a much more user-friendly experience for non-technical users or quick testing.
+
 ## Documentation
 
-- **[Detailed API Documentation](./API.md)** - Comprehensive API guide with examples
-- **[OpenAPI Specification](./openapi.yaml)** - Machine-readable API specification for tools like Swagger UI
-- **[Project README](./README.md)** - This file with setup and basic usage
+📋 **[Complete API Documentation](./API.md)** - Detailed API guide with examples and all endpoints
 
-### Viewing API Documentation
+### Quick Start
 
-You can view the interactive API documentation using Swagger UI:
-
-1. **Online Swagger Editor:**
-   - Go to [editor.swagger.io](https://editor.swagger.io/)
-   - Copy and paste the contents of `openapi.yaml`
-
-2. **Local Swagger UI (Optional):**
-   ```bash
-   npx swagger-ui-serve openapi.yaml
-   ```
-
-## API Documentation
-
-### Base URL
-```
-http://localhost:3000
-```
-
-### Authentication
-This API uses JWT (JSON Web Tokens) for authentication. After successful login, include the token in the Authorization header:
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### API Endpoints
-
-#### 1. Health Check
-**Endpoint:** `GET /health`
-
-**Description:** Check if the server is running and healthy.
-
-**Request:**
 ```bash
-GET /health
-```
-
-**Response:**
-```json
-{
-  "status": "OK",
-  "message": "Server is running"
-}
-```
-
-**Status Codes:**
-- `200 OK` - Server is healthy
-
----
-
-#### 2. User Registration
-**Endpoint:** `POST /api/users/register`
-
-**Description:** Register a new user account.
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Request Body Schema:**
-- `email` (string, required): Valid email address
-- `password` (string, required): Minimum 6 characters
-
-**Success Response:**
-```json
-{
-  "message": "User registered successfully",
-  "user": {
-    "id": "60f7b3b3b3b3b3b3b3b3b3b3",
-    "email": "user@example.com"
-  }
-}
-```
-
-**Error Responses:**
-```json
-// Validation Error (400)
-{
-  "error": "\"email\" must be a valid email"
-}
-
-// User Already Exists (400)
-{
-  "error": "User already exists with this email"
-}
-```
-
-**Status Codes:**
-- `201 Created` - User registered successfully
-- `400 Bad Request` - Validation error or user already exists
-
----
-
-#### 3. User Login
-**Endpoint:** `POST /api/users/login`
-
-**Description:** Authenticate user and receive JWT token.
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-**Request Body Schema:**
-- `email` (string, required): Valid email address
-- `password` (string, required): User's password
-
-**Success Response:**
-```json
-{
-  "message": "Login successful",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": "60f7b3b3b3b3b3b3b3b3b3b3",
-    "email": "user@example.com"
-  }
-}
-```
-
-**Error Responses:**
-```json
-// Validation Error (400)
-{
-  "error": "\"email\" is required"
-}
-
-// Invalid Credentials (401)
-{
-  "error": "Invalid email or password"
-}
-```
-
-**Status Codes:**
-- `200 OK` - Login successful
-- `400 Bad Request` - Validation error
-- `401 Unauthorized` - Invalid credentials
-
----
-
-#### 4. Text Management
-**Endpoint:** `POST /api/texts`
-
-**Description:** Create a new text for analysis. Requires authentication.
-
-**Request Headers:**
-```
-Content-Type: application/json
-Authorization: Bearer <your-jwt-token>
-```
-
-**Request Body:**
-```json
-{
-  "title": "Sample Text",
-  "content": "The quick brown fox jumps over the lazy dog. The lazy dog slept in the sun."
-}
-```
-
-**Success Response:**
-```json
-{
-  "message": "Text created successfully",
-  "text": {
-    "id": "60f7b3b3b3b3b3b3b3b3b3b3",
-    "title": "Sample Text",
-    "content": "The quick brown fox jumps over the lazy dog. The lazy dog slept in the sun.",
-    "createdAt": "2023-07-05T10:00:00.000Z",
-    "updatedAt": "2023-07-05T10:00:00.000Z"
-  }
-}
-```
-
-**Status Codes:**
-- `201 Created` - Text created successfully
-- `400 Bad Request` - Validation error
-- `401 Unauthorized` - Authentication required
-
----
-
-#### 5. Get All User Texts
-**Endpoint:** `GET /api/texts`
-
-**Description:** Retrieve all texts for the authenticated user.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "message": "Texts retrieved successfully",
-  "texts": [
-    {
-      "id": "60f7b3b3b3b3b3b3b3b3b3b3",
-      "title": "Sample Text",
-      "content": "The quick brown fox jumps over the lazy dog...",
-      "createdAt": "2023-07-05T10:00:00.000Z",
-      "updatedAt": "2023-07-05T10:00:00.000Z"
-    }
-  ]
-}
-```
-
----
-
-#### 6. Text Analysis - Word Count
-**Endpoint:** `GET /api/texts/:id/words`
-
-**Description:** Get the word count for a specific text.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "textId": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "wordCount": 15
-}
-```
-
----
-
-#### 7. Text Analysis - Character Count
-**Endpoint:** `GET /api/texts/:id/characters`
-
-**Description:** Get the character count (excluding whitespace) for a specific text.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "textId": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "characterCount": 60
-}
-```
-
----
-
-#### 8. Text Analysis - Sentence Count
-**Endpoint:** `GET /api/texts/:id/sentences`
-
-**Description:** Get the sentence count for a specific text.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "textId": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "sentenceCount": 2
-}
-```
-
----
-
-#### 9. Text Analysis - Paragraph Count
-**Endpoint:** `GET /api/texts/:id/paragraphs`
-
-**Description:** Get the paragraph count for a specific text.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "textId": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "paragraphCount": 1
-}
-```
-
----
-
-#### 10. Text Analysis - Longest Words
-**Endpoint:** `GET /api/texts/:id/longest-words`
-
-**Description:** Get the longest words in each paragraph of the text.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "textId": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "longestWords": ["quick", "brown", "jumps", "slept"]
-}
-```
-
----
-
-#### 11. Complete Text Analysis
-**Endpoint:** `GET /api/texts/:id/analysis`
-
-**Description:** Get complete analysis including all metrics for a specific text.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "textId": "60f7b3b3b3b3b3b3b3b3b3b3",
-  "analysis": {
-    "wordCount": 15,
-    "characterCount": 60,
-    "sentenceCount": 2,
-    "paragraphCount": 1,
-    "longestWords": ["quick", "brown", "jumps", "slept"]
-  }
-}
-```
-
----
-
-#### 12. Update Text
-**Endpoint:** `PUT /api/texts/:id`
-
-**Description:** Update an existing text. Requires authentication and ownership.
-
-**Request Headers:**
-```
-Content-Type: application/json
-Authorization: Bearer <your-jwt-token>
-```
-
-**Request Body:**
-```json
-{
-  "title": "Updated Title",
-  "content": "Updated content here."
-}
-```
-
-**Status Codes:**
-- `200 OK` - Text updated successfully
-- `400 Bad Request` - Validation error
-- `403 Forbidden` - Unauthorized access
-- `404 Not Found` - Text not found
-
----
-
-#### 13. Delete Text
-**Endpoint:** `DELETE /api/texts/:id`
-
-**Description:** Delete a text. Requires authentication and ownership.
-
-**Request Headers:**
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-**Success Response:**
-```json
-{
-  "message": "Text deleted successfully"
-}
-```
-
-**Status Codes:**
-- `200 OK` - Text deleted successfully
-- `403 Forbidden` - Unauthorized access
-- `404 Not Found` - Text not found
-
----
-
-### Text Analysis Rules
-
-The text analysis follows these rules:
-- **Words**: Split by whitespace, case-insensitive, punctuation removed
-- **Characters**: Count excluding whitespace and punctuation
-- **Sentences**: Split by `.`, `!`, `?` punctuation
-- **Paragraphs**: Split by double newlines or more
-- **Longest Words**: One longest word per paragraph, duplicates removed across paragraphs
-
----
-
-### Error Handling
-
-All API endpoints follow a consistent error response format:
-
-```json
-{
-  "error": "Error message description"
-}
-```
-
-### Common HTTP Status Codes
-- `200 OK` - Request successful
-- `201 Created` - Resource created successfully
-- `400 Bad Request` - Invalid request data
-- `401 Unauthorized` - Authentication required or failed
-- `403 Forbidden` - Access denied
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
-
----
-
-### Testing the API
-
-**1. Check if the server is running:**
-```bash
+# 1. Health check
 curl http://localhost:3000/health
-```
 
-**2. Register a new user:**
-```bash
+# 2. Register a user
 curl -X POST http://localhost:3000/api/users/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
-```
 
-**3. Login with the user:**
-```bash
+# 3. Login and get token
 curl -X POST http://localhost:3000/api/users/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
-```
 
-**4. Create a text for analysis:**
-```bash
+# 4. Create and analyze text (use token from step 3)
 curl -X POST http://localhost:3000/api/texts \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"title":"Sample Text","content":"The quick brown fox jumps over the lazy dog. The lazy dog slept in the sun."}'
+  -d '{"title":"Sample","content":"Hello world!"}'
 ```
 
-**5. Analyze the text:**
-```bash
-# Get word count
-curl -X GET http://localhost:3000/api/texts/TEXT_ID/words \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Get character count
-curl -X GET http://localhost:3000/api/texts/TEXT_ID/characters \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-
-# Get full analysis
-curl -X GET http://localhost:3000/api/texts/TEXT_ID/analysis \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+For complete API documentation with all endpoints, examples, and schemas, see **[API.md](./API.md)**.
 
 ### Stopping the Application
 
@@ -780,6 +355,7 @@ This project follows **Clean Architecture** principles:
 
 ## Features
 
+- ✅ **Modern Web Interface** - Beautiful, responsive frontend with real-time text analysis
 - ✅ User registration with email validation
 - ✅ Password hashing with bcrypt
 - ✅ User authentication with JWT tokens
