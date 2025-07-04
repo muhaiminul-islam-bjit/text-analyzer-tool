@@ -1,0 +1,24 @@
+# Use the official Node.js image
+FROM node:22-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables for testing
+ENV NODE_ENV=test
+ENV CI=true
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies for testing)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Expose port for testing
+EXPOSE 3000
+
+# Default command
+CMD ["npm", "test"]

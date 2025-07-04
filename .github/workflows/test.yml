@@ -1,0 +1,50 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Run tests with coverage
+      run: |
+        docker compose -f docker-compose.test.yml up --build app-test-coverage --exit-code-from app-test-coverage
+    
+    - name: Clean up
+      if: always()
+      run: |
+        docker compose -f docker-compose.test.yml down -v
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run TypeScript compiler check
+      run: npx tsc --noEmit
+    
+    # Uncomment if you add ESLint
+    # - name: Run ESLint
+    #   run: npx eslint src tests --ext .ts
