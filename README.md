@@ -185,7 +185,7 @@ This project follows **Clean Architecture** principles:
 - **Infrastructure Layer**: Contains external dependencies (database, cache, logging)
 - **Presentation Layer**: Contains HTTP handlers, routes, and validation
 
-## Features
+## Feature
 
 - ✅ **Modern Web Interface** - Beautiful, responsive frontend with real-time text analysis
 - ✅ User registration with email validation
